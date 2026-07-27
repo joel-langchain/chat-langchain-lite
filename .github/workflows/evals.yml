@@ -15,10 +15,17 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'run-evals')
     runs-on: ubuntu-latest
     env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # One LangSmith key authenticates all three planes, mirroring the local
+      # one-key .env: tracing/SDK (LANGSMITH_API_KEY), the LLM gateway used by
+      # the agent under eval (LANGSMITH_API_KEY_GATEWAY), and the Anthropic
+      # judge, which we also route through the gateway (ANTHROPIC_* below).
       LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
       LANGSMITH_PROJECT: ${{ secrets.LANGSMITH_PROJECT }}
       LANGSMITH_WORKSPACE_ID: ${{ secrets.LANGSMITH_WORKSPACE_ID }}
+      LANGSMITH_API_KEY_GATEWAY: ${{ secrets.LANGSMITH_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      ANTHROPIC_BASE_URL: https://gateway.smith.langchain.com/anthropic
+      ANTHROPIC_CUSTOM_HEADERS: "X-Api-Key: ${{ secrets.LANGSMITH_API_KEY }}"
       DEMO_PRESENTER: ${{ vars.DEMO_PRESENTER }}
       LANGSMITH_TRACING: "true"
     steps:
