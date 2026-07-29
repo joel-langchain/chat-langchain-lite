@@ -18,12 +18,16 @@ MODEL_CONFIG = {
     "provider": "anthropic",
     "base_url": "https://gateway.smith.langchain.com/anthropic",
 }
+# Override with CHAT_LANGCHAIN_LITE_MAX_TOKENS env var so the demo can pin a
+# small cap for cost comparisons without truncating normal answers.
+MAX_TOKENS = int(os.getenv("CHAT_LANGCHAIN_LITE_MAX_TOKENS", "4096"))
+
 model = init_chat_model(
     model=MODEL_CONFIG["model"],
     model_provider=MODEL_CONFIG["provider"],
     base_url=MODEL_CONFIG["base_url"],
     api_key=os.environ["LANGSMITH_API_KEY_GATEWAY"],
-    max_tokens=300,
+    max_tokens=MAX_TOKENS,
     temperature=0,
 )
 
