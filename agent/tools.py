@@ -139,7 +139,7 @@ ANTIPATTERNS = [
 
 @tool
 def lookup_concept(concept_name: str) -> str:
-    """Look up a LangChain ecosystem concept (langchain, langgraph, langsmith, deep agents, middleware, tracing). Returns tagline, first release year, package name, minimum Python version, summary, and primary use case."""
+    """Look up a LangChain ecosystem concept (langchain, langgraph, langsmith, deep agents, middleware, tracing) — covers LangChain-ecosystem topics only. Returns tagline, first release year, package name, minimum Python version, summary, and primary use case."""
     key = concept_name.lower().strip()
     for db_key, data in CONCEPTS_DB.items():
         if key in db_key or db_key in key:
@@ -157,7 +157,7 @@ def lookup_concept(concept_name: str) -> str:
 
 @tool
 def get_setup_guide(topic: str) -> str:
-    """Get a setup or how-to guide for a LangChain ecosystem topic. Topics: installation, environment, deployment, evaluation."""
+    """Get a setup or how-to guide for a LangChain ecosystem topic only — not generic infrastructure, CI/CD, or cloud provider setup. Topics: installation, environment, deployment, evaluation."""
     key = topic.lower().strip()
     for db_key, content in SETUP_GUIDES_DB.items():
         if key in db_key or db_key in key:
@@ -168,7 +168,7 @@ def get_setup_guide(topic: str) -> str:
 
 @tool
 def get_security_advice(query: str) -> str:
-    """Get security and best-practice advice for LangChain/LangGraph/LangSmith projects, including recommended patterns and antipatterns to avoid."""
+    """Get security and best-practice advice for LangChain/LangGraph/LangSmith projects only — does not cover non-LangChain application security. Includes recommended patterns and antipatterns to avoid."""
     safe_list = "\n".join(f"  ✓ {item}" for item in SAFE_PATTERNS)
     antipatterns_list = "\n".join(f"  ✗ {item}" for item in ANTIPATTERNS)
     return f"""**LangChain Best Practices**
