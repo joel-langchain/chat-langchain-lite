@@ -54,6 +54,21 @@ CONCEPTS_DB = {
     },
 }
 
+# Alternate spellings that resolve to a CONCEPTS_DB key. Anything not listed
+# here and not an exact key is treated as outside this tool's coverage, so
+# generic infrastructure terms deliberately have no entry.
+CONCEPT_ALIASES = {
+    "lang chain": "langchain",
+    "lc": "langchain",
+    "lang graph": "langgraph",
+    "lang smith": "langsmith",
+    "deepagents": "deep agents",
+    "deep agent": "deep agents",
+    "middlewares": "middleware",
+    "agent middleware": "middleware",
+    "langsmith tracing": "tracing",
+}
+
 SETUP_GUIDES_DB = {
     "installation": """Install the core packages with uv:
 
@@ -114,6 +129,16 @@ For online evaluation, register a run rule in the LangSmith Evaluators UI.
 Every new trace in the project will be scored automatically.""",
 }
 
+SETUP_GUIDE_ALIASES = {
+    "install": "installation",
+    "setup": "installation",
+    "env": "environment",
+    "environment variables": "environment",
+    "deploy": "deployment",
+    "eval": "evaluation",
+    "evals": "evaluation",
+}
+
 # Best practices the agent can recommend without caveat.
 SAFE_PATTERNS = [
     "For documentation, link users to python.langchain.com and js.langchain.com — these are the canonical reference sites",
@@ -137,38 +162,73 @@ ANTIPATTERNS = [
 ]
 
 
+def _normalize(term: str) -> str:
+    """Lowercase, strip, and collapse internal whitespace in a lookup term."""
+    return " ".join(term.lower().split())
+
+
 @tool
 def lookup_concept(concept_name: str) -> str:
-    """Look up a LangChain ecosystem concept (langchain, langgraph, langsmith, deep agents, middleware, tracing). Returns tagline, first release year, package name, minimum Python version, summary, and primary use case."""
-    key = concept_name.lower().strip()
-    for db_key, data in CONCEPTS_DB.items():
-        if key in db_key or db_key in key:
-            lines = [f"**{db_key.title()}** — {data['tagline']}"]
-            lines.append(f"- First released: {data['first_released']}")
-            lines.append(f"- Package: `{data['package']}`")
-            lines.append(f"- Minimum Python: {data['min_python']}")
-            lines.append(f"- Primary use case: {data['primary_use_case']}")
-            lines.append("")
-            lines.append(data["summary"])
-            return "\n".join(lines)
+    """Look up a LangChain ecosystem concept (langchain, langgraph, langsmith, deep agents, middleware, tracing).
+
+    SCOPE: the LangChain ecosystem ONLY. This tool knows nothing about general
+    infrastructure, cloud platforms, or third-party tooling — Kubernetes,
+    Jaeger, OpenTelemetry, Docker, GitHub Actions, AWS, Terraform, Postgres and
+    the like. Do NOT call it for those questions; it has no coverage of them.
+
+    Returns tagline, first release year, package name, minimum Python version,
+    summary, and primary use case.
+    """
+    key = _normalize(concept_name)
+    db_key = key if key in CONCEPTS_DB else CONCEPT_ALIASES.get(key)
+    if db_key is not None:
+        data = CONCEPTS_DB[db_key]
+        lines = [f"**{db_key.title()}** — {data['tagline']}"]
+        lines.append(f"- First released: {data['first_released']}")
+        lines.append(f"- Package: `{data['package']}`")
+        lines.append(f"- Minimum Python: {data['min_python']}")
+        lines.append(f"- Primary use case: {data['primary_use_case']}")
+        lines.append("")
+        lines.append(data["summary"])
+        return "\n".join(lines)
     available = ", ".join(k.title() for k in CONCEPTS_DB.keys())
-    return f"Concept '{concept_name}' not found. Available concepts: {available}"
+    return (
+        f"Concept '{concept_name}' not found — it is outside this tool's "
+        f"LangChain-ecosystem coverage. Available concepts: {available}"
+    )
 
 
 @tool
 def get_setup_guide(topic: str) -> str:
-    """Get a setup or how-to guide for a LangChain ecosystem topic. Topics: installation, environment, deployment, evaluation."""
-    key = topic.lower().strip()
-    for db_key, content in SETUP_GUIDES_DB.items():
-        if key in db_key or db_key in key:
-            return f"**{db_key.title()} guide:**\n\n{content}"
+    """Get a setup or how-to guide for a LangChain ecosystem topic. Topics: installation, environment, deployment, evaluation.
+
+    SCOPE: the LangChain ecosystem ONLY. "deployment" means the LangGraph
+    Platform and "evaluation" means LangSmith evals — not generic CI/CD or
+    cloud deployment. This tool has no content on Kubernetes, Docker, GitHub
+    Actions, AWS, Terraform, Postgres, or other third-party tooling, so do NOT
+    call it for those questions.
+    """
+    key = _normalize(topic)
+    db_key = key if key in SETUP_GUIDES_DB else SETUP_GUIDE_ALIASES.get(key)
+    if db_key is not None:
+        return f"**{db_key.title()} guide:**\n\n{SETUP_GUIDES_DB[db_key]}"
     available = ", ".join(SETUP_GUIDES_DB.keys())
-    return f"Topic '{topic}' not found. Available topics: {available}"
+    return (
+        f"Topic '{topic}' not found — it is outside this tool's "
+        f"LangChain-ecosystem coverage. Available topics: {available}"
+    )
 
 
 @tool
 def get_security_advice(query: str) -> str:
-    """Get security and best-practice advice for LangChain/LangGraph/LangSmith projects, including recommended patterns and antipatterns to avoid."""
+    """Get security and best-practice advice for LangChain/LangGraph/LangSmith projects, including recommended patterns and antipatterns to avoid.
+
+    SCOPE: the LangChain ecosystem ONLY. The returned list is a fixed set of
+    LangChain/LangGraph/LangSmith patterns and does not vary with the query. Do
+    NOT call it for general infrastructure, cloud, or third-party tooling
+    security questions (Kubernetes, Docker, GitHub Actions, AWS, Terraform,
+    Postgres, OpenTelemetry, ...).
+    """
     safe_list = "\n".join(f"  ✓ {item}" for item in SAFE_PATTERNS)
     antipatterns_list = "\n".join(f"  ✗ {item}" for item in ANTIPATTERNS)
     return f"""**LangChain Best Practices**
