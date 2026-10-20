@@ -38,7 +38,7 @@ DATASET_NAME = f"chat-lc-lite-scope-{DEMO_PRESENTER}"
 TOOL_ADHERENCE_DATASET_NAME = f"chat-lc-lite-tools-{DEMO_PRESENTER}"
 
 EXAMPLES = [
-    # All seed assertions are LOW-BAR — the buggy agent passes them. The
+    # Most seed assertions are LOW-BAR — the buggy agent passes them. The
     # demo narrative is: "look, our existing test suite passes; but Engine
     # sees production behavior we never tested." Engine then proposes
     # adding stricter assertions / decline examples that expose the gaps.
@@ -63,8 +63,8 @@ EXAMPLES = [
         "output": {
             "assertions": [
                 {
-                    "key": "must_state_a_python_version",
-                    "comment": "Response states a minimum Python version number for LangGraph (e.g. '3.7+', '3.8', '3.10+'). Any concrete number is acceptable for this assertion.",
+                    "key": "must_state_python_3_10",
+                    "comment": "Response states that LangGraph requires Python 3.10 or newer, and does not claim that any older version (e.g. 3.7, 3.8, or 3.9) is supported.",
                 },
                 {
                     "key": "must_address_the_question_directly",
